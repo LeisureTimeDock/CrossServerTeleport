@@ -1,0 +1,21 @@
+# LTD CrossServer Plugin Configuration
+# 闲趣时坞跨服传送插件配置文件
+
+# ----------------------------------------
+# Server Aliases / 服务器别名映射
+# 玩家使用 /goto 命令时可以输入别名
+# Players can use these aliases with /goto
+# 格式: alias: real-server-name
+# Format: 别名: 实际服务器名称
+server-aliases:
+  survival: survival     # 生存服 / Survival server
+  lobby: lobby           # 大厅服 / Lobby server
+
+# ----------------------------------------
+# Show Overlay Servers / 显示 Overlay 的服务器列表
+# 玩家加入这些服务器时客户端将显示 Overlay 提示
+# Clients will show overlay tips when joining these servers
+# 你可以添加多个服务器名
+# You can add multiple server names
+show-overlay-servers:
+  - lobby

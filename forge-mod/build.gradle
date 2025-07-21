@@ -1,0 +1,166 @@
+plugins {
+    id 'java'
+    id 'maven-publish'
+    id 'org.jetbrains.dokka' version '1.9.10'
+    id 'io.franzbecker.gradle-lombok' version '3.0.0'
+    id 'com.github.johnrengelman.shadow' version '8.1.1'
+    id 'net.neoforged.moddev.legacyforge' version '2.0.103'
+}
+
+group = mod_group_id
+version = "${minecraft_version}-${mod_version}"
+
+java {
+    toolchain.languageVersion = JavaLanguageVersion.of(17)
+}
+
+base {
+    archivesName = mod_id
+}
+configurations {
+    testImplementation {
+        canBeConsumed = false
+    }
+    testRuntimeClasspath {
+        canBeConsumed = false
+        attributes {
+            attribute(Attribute.of("net.neoforged.moddevgradle.legacy.minecraft_mappings.v2", String), "named")
+        }
+    }
+}
+println "Java: ${System.getProperty 'java.version'}, JVM: ${System.getProperty 'java.vm.version'} (${System.getProperty 'java.vendor'}), Arch: ${System.getProperty 'os.arch'}"
+
+
+
+//// 配置 Mixin
+//mixin {
+//    add sourceSets.main, "${mod_id}.refmap.json"
+//    config "${mod_id}.mixins.json"
+//}
+
+// 配置 LegacyForge 运行环境
+legacyForge {
+
+    version = "${minecraft_version}-${forge_version}"
+    accessTransformers.from "src/main/resources/META-INF/accesstransformer.cfg"
+    parchment {
+        minecraftVersion = "${minecraft_version}"
+        mappingsVersion =  "${mapping_lasting_version}"
+    }
+    runs {
+        configureEach {
+            systemProperty 'forge.logging.console.level', 'debug'
+        }
+        clientAuth {
+            devLogin = true
+            client()
+        }
+        client {
+            client()
+        }
+        data {
+            data()
+        }
+        server {
+            server()
+        }
+    }
+    mods {
+        "${mod_id}" {
+            sourceSet(sourceSets.main)
+        }
+    }
+}
+
+// 源码配置
+sourceSets {
+    main {
+        java.srcDir 'src/main/java'
+        resources {
+            srcDirs += 'src/generated/resources'
+            include '**/**'
+            exclude '**/*.psd', '.cache'
+        }
+    }
+}
+
+// 依赖声明
+configurations {
+    library
+    implementation.extendsFrom library
+}
+
+dependencies {
+    compileOnly 'org.projectlombok:lombok:1.18.24'
+    annotationProcessor 'org.projectlombok:lombok:1.18.24'
+}
+
+// 编译任务优化
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+}
+dokkaJavadoc {
+    outputDirectory = file("$buildDir/javadoc")
+}
+
+// 打包配置
+jar {
+    manifest {
+        attributes([
+                'Specification-Title'     : mod_id,
+                'Specification-Vendor'    : mod_authors,
+                'Specification-Version'   : '1',
+                'Implementation-Title'    : project.name,
+                'Implementation-Version'  : archiveVersion,
+                'Implementation-Vendor'   : mod_authors,
+                'Implementation-Timestamp': new Date().format("yyyy-MM-dd'T'HH:mm:ssZ"),
+//                'MixinConfigs' : "${mod_id}.mixin.json"
+        ])
+    }
+    finalizedBy 'reobfJar'
+}
+processResources {
+    def props = [
+            minecraft_version      : minecraft_version,
+            minecraft_version_range: minecraft_version_range,
+            forge_version          : forge_version,
+            forge_version_range    : forge_version_range,
+            loader_version_range   : loader_version_range,
+            mod_id                 : mod_id,
+            mod_name               : mod_name,
+            mod_license            : mod_license,
+            mod_version            : mod_version,
+            mod_authors            : mod_authors,
+            mod_description        : mod_description
+    ]
+    inputs.properties props
+
+    filesMatching(['META-INF/mods.toml', 'pack.mcmeta']) {
+        expand props + [project: project]
+    }
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+}
+
+
+// ShadowJar 禁止缓存优化
+shadowJar {
+    outputs.upToDateWhen { false }
+}
+
+// 本地 Maven 发布
+publishing {
+    publications {
+        create('mavenJava', MavenPublication) {
+            artifact jar
+        }
+    }
+    repositories {
+        maven {
+            url "file://${project.projectDir}/mcmodsrepo"
+        }
+    }
+}
+
+processResources{
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+}
