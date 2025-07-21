@@ -1,4 +1,4 @@
-<img src="forge-mod/src/main/resources/ltd_logo.png" alt="LTD Logo" width="512" height="512">
+<img src="forge-mod/src/main/resources/ltd_logo.png" alt="LTD Logo" width="128" height="128">
 
 # 关于此项目
 众所周知，群组服对Forge模组服务器支持很有限，社区里我没找到满意的解决MOD客户端在Velocity代理跨服方案项目
