@@ -10,6 +10,9 @@ import lombok.extern.slf4j.Slf4j;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 
+import java.util.List;
+import java.util.concurrent.CompletableFuture;
+
 @Slf4j
 public class ReloadConfigCommand implements SimpleCommand {
 
@@ -19,21 +22,24 @@ public class ReloadConfigCommand implements SimpleCommand {
     public ReloadConfigCommand(ConfigManager configManager) {
         this.configManager = configManager;
     }
+    public static List<String> SUGGESTIONS = List.of("reload", "help");
 
     @Override
     public void execute(SimpleCommand.Invocation invocation) {
         CommandSource source = invocation.source();
         String[] args = invocation.arguments();
-        // /ltdcrossserver
+        // ltdcrossserver
         if (args.length == 0) {
-            source.sendMessage(I18n.translatable(PERMISSION_HELP, NamedTextColor.YELLOW));
+            source.sendMessage(I18n.translatable(I18nKeyEnum.COMMAND_HELP, NamedTextColor.YELLOW));
             return;
         }
+
 
         String subCommand = args[0].toLowerCase();
         switch (subCommand) {
             case "reload" -> handleReload(source);
-            default -> source.sendMessage(I18n.translatable(I18nKeyEnum.UNKNOWN_COMMAND, NamedTextColor.YELLOW));
+            case "help" -> source.sendMessage(I18n.translatable(I18nKeyEnum.COMMAND_HELP, NamedTextColor.YELLOW));
+            default -> source.sendMessage(I18n.translatable(I18nKeyEnum.UNKNOWN_COMMAND, NamedTextColor.YELLOW, Component.text(subCommand)));
         }
 
 
@@ -54,5 +60,11 @@ public class ReloadConfigCommand implements SimpleCommand {
             log.error("Failed to reload config", e);
         }
     }
+
+    @Override
+    public CompletableFuture<List<String>> suggestAsync(Invocation invocation) {
+        return CompletableFuture.completedFuture(SUGGESTIONS);
+    }
+
 }
 

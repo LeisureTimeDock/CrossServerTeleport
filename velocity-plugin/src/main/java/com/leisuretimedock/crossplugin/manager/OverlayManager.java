@@ -1,6 +1,6 @@
 package com.leisuretimedock.crossplugin.manager;
 
-import com.leisuretimedock.crossplugin.handler.PluginChannelHandler;
+import com.leisuretimedock.crossplugin.listener.PluginMessageListener;
 import com.leisuretimedock.crossplugin.messages.I18n;
 import com.leisuretimedock.crossplugin.messages.I18nKeyEnum;
 import com.velocitypowered.api.proxy.Player;
@@ -29,7 +29,7 @@ public class OverlayManager {
             data.flush();
 
             player.sendPluginMessage(
-                    PluginChannelHandler.CHANNEL_ID,
+                    PluginMessageListener.CHANNEL_ID,
                     out.toByteArray()
             );
         } catch (Exception e) {
@@ -56,7 +56,7 @@ public class OverlayManager {
             }
 
             player.sendPluginMessage(
-                    PluginChannelHandler.CHANNEL_ID,
+                    PluginMessageListener.CHANNEL_ID,
                     out.toByteArray()
             );
 

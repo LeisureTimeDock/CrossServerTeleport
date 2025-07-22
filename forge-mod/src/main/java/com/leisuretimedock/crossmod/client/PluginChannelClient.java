@@ -13,7 +13,6 @@ import net.minecraft.network.Connection;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.TextComponent;
 import net.minecraft.network.protocol.game.ClientboundCustomPayloadPacket;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.ClientPlayerNetworkEvent;
 import net.minecraftforge.client.event.RegisterClientCommandsEvent;
@@ -24,25 +23,24 @@ import java.util.Objects;
 @Slf4j
 @Mod.EventBusSubscriber(modid = CrossTeleportMod.MOD_ID, value = Dist.CLIENT)
 public class PluginChannelClient {
-    public static final ResourceLocation CHANNEL_ID = new ResourceLocation(CrossTeleportMod.MOD_ID, "channel");
-    private static final String HANDLER_NAME = CrossTeleportMod.MOD_ID+":channel";
+    private static final String HANDLER_NAME = CrossTeleportMod.MOD_ID + ":channel";
 
     @SubscribeEvent
     public static void onLogin(ClientPlayerNetworkEvent.LoggedInEvent event) {
-        log.info("[CrossTeleportMod] 玩家登录事件触发");
+        log.debug("[CrossTeleportMod] 玩家登录事件触发");
 
         Connection connection = Objects.requireNonNull(Minecraft.getInstance().getConnection()).getConnection();
         ChannelPipeline pipeline = connection.channel().pipeline();
 
-        log.info("[CrossTeleportMod] 当前管线内容: {}", pipeline.names());
+        log.debug("[CrossTeleportMod] 当前管线内容: {}", pipeline.names());
 
         if (pipeline.get(HANDLER_NAME) == null) {
             pipeline.addBefore("packet_handler", HANDLER_NAME, new SimpleChannelInboundHandler<ClientboundCustomPayloadPacket>() {
                 @Override
                 protected void channelRead0(ChannelHandlerContext ctx, ClientboundCustomPayloadPacket packet) {
-                    log.info("[CrossTeleportMod] 收到插件消息包: {}", packet.getIdentifier());
+                    log.debug("[CrossTeleportMod] 收到插件消息包: {}", packet.getIdentifier());
 
-                    if (!packet.getIdentifier().equals(CHANNEL_ID)) {
+                    if (!packet.getIdentifier().equals(NetworkHandler.CHANNEL_ID)) {
                         log.warn("[CrossTeleportMod] 未识别插件消息频道: {}", packet.getIdentifier());
                         return;
                     }
@@ -55,17 +53,17 @@ public class PluginChannelClient {
                         // 再读
                         String command = buf.readUtf();
 
-                        log.info("[CrossTeleportMod] 收到指令: {}", command);
+                        log.debug("[CrossTeleportMod] 收到指令: {}", command);
 
                         Minecraft.getInstance().execute(() -> {
                             PluginCommand.fromId(command).ifPresentOrElse(cmd -> {
                                 switch (cmd) {
                                     case OVERLAY_SHOW -> {
-                                        log.info("[CrossTeleportMod] 执行 OVERLAY_SHOW");
+                                        log.debug("[CrossTeleportMod] 执行 OVERLAY_SHOW");
                                         OverlayRenderer.setShow(true);
                                     }
                                     case OVERLAY_HIDE -> {
-                                        log.info("[CrossTeleportMod] 执行 OVERLAY_HIDE");
+                                        log.debug("[CrossTeleportMod] 执行 OVERLAY_HIDE");
                                         OverlayRenderer.setShow(false);
                                     }
                                 }
@@ -78,7 +76,7 @@ public class PluginChannelClient {
                 }
             });
 
-            log.info("[CrossTeleportMod] 已添加插件消息处理器: {}", HANDLER_NAME);
+            log.debug("[CrossTeleportMod] 已添加插件消息处理器: {}", HANDLER_NAME);
             NetworkHandler.sendClientReady();
         }
         else {
@@ -90,17 +88,17 @@ public class PluginChannelClient {
 
     @SubscribeEvent
     public static void onLogout(ClientPlayerNetworkEvent.LoggedOutEvent event) {
-        log.info("[CrossTeleportMod] 玩家注销事件触发");
+        log.debug("[CrossTeleportMod] 玩家注销事件触发");
 
         Connection connection = event.getConnection();
         if (connection != null) {
             ChannelPipeline pipeline = connection.channel().pipeline();
 
-            log.info("[CrossTeleportMod] 当前管线内容: {}", pipeline.names());
+            log.debug("[CrossTeleportMod] 当前管线内容: {}", pipeline.names());
 
             if (pipeline.get(HANDLER_NAME) != null) {
                 pipeline.remove(HANDLER_NAME);
-                log.info("[CrossTeleportMod] 成功移除插件消息处理器: {}", HANDLER_NAME);
+                log.debug("[CrossTeleportMod] 成功移除插件消息处理器: {}", HANDLER_NAME);
             } else {
                 log.warn("[CrossTeleportMod] 未找到插件消息处理器: {}", HANDLER_NAME);
             }
@@ -116,7 +114,7 @@ public class PluginChannelClient {
                         .then(Commands.argument("server", StringArgumentType.string())
                                 .executes(ctx -> {
                                     String server = StringArgumentType.getString(ctx, "server");
-                                    NetworkHandler.sendTeleportMessage(server);
+                                    NetworkHandler.sendTeleportRequest(server);
                                     ctx.getSource().sendSuccess(
                                             new TextComponent("请求传送到 " + server), false);
                                     return 1;

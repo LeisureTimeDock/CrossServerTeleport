@@ -1,8 +1,6 @@
 package com.leisuretimedock.crossmod;
 
-import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.IExtensionPoint;
 import net.minecraftforge.fml.ModLoadingContext;
@@ -12,7 +10,7 @@ import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 @Mod(CrossTeleportMod.MOD_ID)
 public class CrossTeleportMod {
     public static final String MOD_ID ="ltdcrossteleport";
-    public static final ResourceLocation CHANNEL = new ResourceLocation(MOD_ID, "teleport");
+
 
     public CrossTeleportMod() {
         // 注册生命周期事件
