@@ -1,4 +1,4 @@
-package com.leisuretimedock.crossmod.client;
+package com.leisuretimedock.crossmod.client.overlay;
 
 import java.util.Arrays;
 import java.util.Optional;

@@ -27,6 +27,8 @@ configurations {
             attribute(Attribute.of("net.neoforged.moddevgradle.legacy.minecraft_mappings.v2", String), "named")
         }
     }
+    clientModImplementation
+    implementation.extendsFrom clientModImplementation
 }
 println "Java: ${System.getProperty 'java.version'}, JVM: ${System.getProperty 'java.vm.version'} (${System.getProperty 'java.vendor'}), Arch: ${System.getProperty 'os.arch'}"
 
@@ -94,10 +96,11 @@ dependencies {
     compileOnly 'org.projectlombok:lombok:1.18.24'
     annotationProcessor 'org.projectlombok:lombok:1.18.24'
     annotationProcessor 'org.spongepowered:mixin:0.8.5:processor'
+
     modImplementation "curse.maven:easy-villagers-400514:3887794"
     modImplementation "curse.maven:xaeros-world-map-317780:6538320"
     modImplementation "curse.maven:immersive-aircraft-666014:4679496"
-    modImplementation "curse.maven:modern-ui-352491:5229350"
+    modCompileOnly "curse.maven:modern-ui-352491:5229350"
     modImplementation "curse.maven:iceberg-520110:4035917"
 }
 

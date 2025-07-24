@@ -1,10 +1,16 @@
 package com.leisuretimedock.crossmod.reset;
 
+import com.leisuretimedock.crossmod.network.toClient.ResetPacket;
 import lombok.extern.slf4j.Slf4j;
 import net.minecraft.network.Connection;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.util.ObfuscationReflectionHelper;
-import net.minecraftforge.network.*;
+import net.minecraftforge.network.HandshakeHandler;
+import net.minecraftforge.network.NetworkConstants;
+import net.minecraftforge.network.NetworkDirection;
+import net.minecraftforge.network.NetworkEvent;
 import net.minecraftforge.network.simple.SimpleChannel;
 
 import java.lang.reflect.Constructor;
@@ -12,6 +18,7 @@ import java.lang.reflect.Field;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 @Slf4j
+@OnlyIn(Dist.CLIENT)
 public class ClientResetManager {
     public static final Field handshakeField;
     public static final Constructor<NetworkEvent.Context> contextConstructor;

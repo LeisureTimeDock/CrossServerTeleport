@@ -30,6 +30,8 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
+import static com.leisuretimedock.crossplugin.CrossPlugin.CROSS_TELEPORT_MOD;
+
 
 /**
  * 插件消息监听器，负责接收客户端发来的插件消息并处理跨服传送、Overlay显示等逻辑。
@@ -60,7 +62,7 @@ public class PluginMessageListener {
         this.proxy = proxy;
         this.logger = logger;
         this.configManager = configManager;
-        this.serverManager = new ServerManager(proxy);
+        this.serverManager = new ServerManager(proxy, configManager);
     }
 
     /**
@@ -87,7 +89,7 @@ public class PluginMessageListener {
     private void handleTeleportChannel(Player player, byte[] data) {
         // 跳过第一个 byte（长度信息），后面是 UTF-8 字符串
         String raw = new String(data, 1, data.length - 1, StandardCharsets.UTF_8);
-        logger.debug("[CrossTeleportMod] Received teleport msg from {}: {}", player.getUsername(), raw);
+        if(configManager.isEnableListenerLog()) logger.debug(CROSS_TELEPORT_MOD, "Received teleport msg from {}: {}", player.getUsername(), raw);
 
         if (raw.startsWith("connect:")) {
             // 兼容旧的 connect: 方式，映射别名到真实服务器名
@@ -105,21 +107,23 @@ public class PluginMessageListener {
      * @param data   消息字节数组
      */
     private void handlePluginChannel(Player player, byte[] data) {
-        // 简单日志，打印字节长度和十六进制，便于调试
-        log.trace("Received plugin message on channel 'channel' from player {}", player.getUsername());
-        log.trace("Data length: {}", data.length);
-        StringBuilder sb = new StringBuilder();
-        for (byte b : data) {
-            sb.append(String.format("%02X ", b));
+        if(configManager.isEnableListenerLog()) {
+            // 简单日志，打印字节长度和十六进制，便于调试
+            log.trace(CROSS_TELEPORT_MOD, "Received plugin message on channel 'channel' from player {}", player.getUsername());
+            log.trace(CROSS_TELEPORT_MOD, "Data length: {}", data.length);
+            StringBuilder sb = new StringBuilder();
+            for (byte b : data) {
+                sb.append(String.format("%02X ", b));
+            }
+            log.trace("Data hex: {}", sb);
         }
-        log.trace("Data hex: {}", sb);
         try (DataInputStream in = new DataInputStream(new ByteArrayInputStream(data))) {
             String command = in.readUTF();
-            logger.debug("[CrossTeleportMod] Received plugin command from {}: {}", player.getUsername(), command);
+            if(configManager.isEnableListenerLog()) logger.debug(CROSS_TELEPORT_MOD, "Received plugin command from {}: {}", player.getUsername(), command);
 
             if ("client_ready".equals(command)) {
                 if (waitingForReady.remove(player)) {
-                    logger.debug("[CrossTeleportMod] {} is ready, sending overlay", player.getUsername());
+                    if(configManager.isEnableListenerLog())  logger.debug(CROSS_TELEPORT_MOD, " {} is ready, sending overlay", player.getUsername());
                     player.getCurrentServer().ifPresent(i -> {
                         String name = i.getServerInfo().getName();
                         boolean contains = configManager.getOverlayServers().contains(name);
@@ -130,17 +134,17 @@ public class PluginMessageListener {
                     });
                     // TODO: 支持发送自定义服务器列表
                 } else {
-                    logger.debug("[CrossTeleportMod] Received client_ready from {}, but not in waiting set", player.getUsername());
+                    if(configManager.isEnableListenerLog()) logger.debug(CROSS_TELEPORT_MOD, "Received client_ready from {}, but not in waiting set", player.getUsername());
                 }
             } else if (command.startsWith("teleport:")) {
                 String server = command.substring("teleport:".length());
                 tryTeleport(player, server, true);
             } else {
-                logger.warn("[CrossTeleportMod] Unknown command: {}", command);
+                if(configManager.isEnableListenerLog()) logger.warn(CROSS_TELEPORT_MOD, "Unknown command: {}", command);
             }
 
         } catch (IOException e) {
-            logger.error("[CrossTeleportMod] Failed to parse plugin message from {}", player.getUsername(), e);
+            if(configManager.isEnableErrorLog()) logger.error(CROSS_TELEPORT_MOD, "Failed to parse plugin message from {}", player.getUsername(), e);
         }
     }
 
@@ -164,7 +168,7 @@ public class PluginMessageListener {
 
         proxy.getServer(targetServer).ifPresentOrElse(server -> {
             player.createConnectionRequest(server).fireAndForget();
-            logger.info("[CrossTeleportMod] Sent {} to {}", player.getUsername(), targetServer);
+            if (configManager.isEnableListenerLog()) logger.info(CROSS_TELEPORT_MOD, "Sent {} to {}", player.getUsername(), targetServer);
         }, () -> {
             player.sendMessage(I18n.translatable(I18nKeyEnum.SERVER_NOT_FOUND,
                     NamedTextColor.RED, Component.text(targetServer)));
@@ -179,7 +183,7 @@ public class PluginMessageListener {
         Player player = event.getPlayer();
         String currentServer = event.getServer().getServerInfo().getName();
 
-        logger.debug("[CrossTeleportMod] Player {} joined server {}", player.getUsername(), currentServer);
+        if(configManager.isEnableListenerLog()) logger.debug(CROSS_TELEPORT_MOD, "Player {} joined server {}", player.getUsername(), currentServer);
 
         waitingForReady.add(player);
     }

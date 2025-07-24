@@ -1,6 +1,7 @@
 package com.leisuretimedock.crossmod.client;
 
 import com.leisuretimedock.crossmod.CrossTeleportMod;
+import com.leisuretimedock.crossmod.client.gui.CrossServerGui;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 import net.minecraftforge.api.distmarker.Dist;

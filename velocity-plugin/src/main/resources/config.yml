@@ -19,3 +19,38 @@ server-aliases:
 # You can add multiple server names
 show-overlay-servers:
   - lobby
+# ----------------------------------------
+# Ping Setting / 计算后端服务器、代理服务器与玩家之间的网络延迟
+ping-setting:
+  # 是否启用延迟计算机制
+  # Enable or disable ping measurement
+  # 修改后需要重启代理才生效
+  # Changes require a proxy restart to take effect
+  enable-ping: true
+
+  # Ping测试间隔(秒)
+  # Ping measurement interval in seconds
+  # 修改后需要重启代理才生效
+  # Changes require a proxy restart to take effect
+  interval: 5
+
+  # 延迟阈值配置(毫秒)
+  # Latency thresholds in milliseconds
+  thresholds:
+    good: 100      # 绿色显示 / Display in green
+    moderate: 200  # 黄色显示 / Display in yellow
+    bad: 300       # 红色显示 / Display in red
+# ----------------------------------------
+# Log Settings / 日志记录设置
+log-info-setting:
+  # 是否记录错误日志
+  # Enable error logging
+  enable-error-log: true
+
+  # 是否记录监听器事件日志
+  # Enable listener event logging
+  enable-listener-log: true
+
+  # 是否记录Ping测试日志
+  # Enable ping measurement logging
+  enable-ping-log: true

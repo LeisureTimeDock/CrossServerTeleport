@@ -1,6 +1,8 @@
-package com.leisuretimedock.crossmod.client;
+package com.leisuretimedock.crossmod.client.gui;
 
 import com.leisuretimedock.crossmod.CrossTeleportMod;
+import com.leisuretimedock.crossmod.client.overlay.CrossServerTipOverLay;
+import com.leisuretimedock.crossmod.client.overlay.PingOverlayManager;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import io.netty.buffer.Unpooled;
@@ -10,18 +12,21 @@ import net.minecraft.client.gui.components.Checkbox;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.network.chat.TextComponent;
+import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.network.protocol.game.ServerboundCustomPayloadPacket;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import org.jetbrains.annotations.NotNull;
 
+@OnlyIn(Dist.CLIENT)
 public class CrossServerGui extends Screen {
 
     private static final ResourceLocation CHANNEL_ID = new ResourceLocation(CrossTeleportMod.MOD_ID, "teleport");
     private static final ResourceLocation LOGO_TEXTURE = new ResourceLocation(CrossTeleportMod.MOD_ID, "textures/ltd_logo.png");
 
     public CrossServerGui() {
-        super(new TextComponent("跨服菜单"));
+        super(new TranslatableComponent("ltd.mod.client.menu"));
     }
 
     @Override
@@ -33,26 +38,36 @@ public class CrossServerGui extends Screen {
         int spacing = 5;
 
         addRenderableWidget(new Button(centerX - buttonWidth / 2, centerY - buttonHeight - spacing,
-                buttonWidth, buttonHeight, new TextComponent("🏰 主城"), btn -> {
+                buttonWidth, buttonHeight, new TranslatableComponent("ltd.mod.client.menu.button.1"), btn -> {
             sendCustomPayload("connect:lobby");
             onClose();
         }));
 
         addRenderableWidget(new Button(centerX - buttonWidth / 2, centerY,
-                buttonWidth, buttonHeight, new TextComponent("🌲 生存服"), btn -> {
+                buttonWidth, buttonHeight,  new TranslatableComponent("ltd.mod.client.menu.button.2"), btn -> {
             sendCustomPayload("connect:survival");
             onClose();
         }));
         // 添加 Checkbox 控件
-        Checkbox overlayCheckbox = new Checkbox(centerX - buttonWidth / 2, centerY + buttonHeight + spacing + 5,
-                150, 20, new TextComponent("显示传送提示"), !OverlayRenderer.isShowOverlay()) {
+        Checkbox enableCrCheckBox = new Checkbox(centerX - buttonWidth / 2, centerY + buttonHeight + spacing + 5,
+                150, 20, new TranslatableComponent("ltd.mod.client.menu.checkbox.show_trans_tip"), !CrossServerTipOverLay.isShowOverlay()) {
             @Override
             public void onPress() {
                 super.onPress();
-                OverlayRenderer.setShow(this.selected());
+                CrossServerTipOverLay.setShow(this.selected());
             }
         };
-        addRenderableWidget(overlayCheckbox);
+        addRenderableWidget(enableCrCheckBox);
+        // 添加 Checkbox 控件
+        Checkbox enablePiCheckBox = new Checkbox(centerX - buttonWidth / 2, centerY + buttonHeight + spacing + 25,
+                150, 20, new TranslatableComponent("ltd.mod.client.menu.checkbox.show_ping_stat"), !PingOverlayManager.isShowOverlay()) {
+            @Override
+            public void onPress() {
+                super.onPress();
+                PingOverlayManager.setShow(this.selected());
+            }
+        };
+        addRenderableWidget(enablePiCheckBox);
     }
 
     private void sendCustomPayload(String message) {

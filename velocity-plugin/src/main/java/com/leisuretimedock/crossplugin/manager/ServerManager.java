@@ -11,10 +11,10 @@ import java.util.Optional;
 public class ServerManager {
     private final ProxyServer proxy;
     private final Map<String, ServerInfo> serverMap = new HashMap<>();
-
-    public ServerManager(ProxyServer proxy) {
+    private final ConfigManager configManager;
+    public ServerManager(ProxyServer proxy, ConfigManager configManager) {
         this.proxy = proxy;
-
+        this.configManager = configManager;
         // 示例：静态初始化可跳转服务器
         registerServer("lobby", "大厅服务器");
         registerServer("survival", "生存服务器");

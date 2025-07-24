@@ -1,5 +1,7 @@
 package com.leisuretimedock.crossplugin.manager;
 
+import com.leisuretimedock.crossplugin.CrossPlugin;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.spongepowered.configurate.ConfigurationNode;
 import org.spongepowered.configurate.yaml.YamlConfigurationLoader;
@@ -14,12 +16,31 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
+import static com.leisuretimedock.crossplugin.CrossPlugin.CROSS_TELEPORT_MOD;
+
 @Slf4j
 public class ConfigManager {
     private final Path configPath;
     private final YamlConfigurationLoader loader;
     private final Map<String, String> serverAliases = new ConcurrentHashMap<>();
     private final Set<String> overlayServers = ConcurrentHashMap.newKeySet();
+    @Getter
+    private boolean enablePing;
+    @Getter
+    private long intervalPing;
+    @Getter
+    private boolean enableErrorLog = true;
+    @Getter
+    private boolean enableListenerLog = true;
+    @Getter
+    private boolean enablePingLog = true;
+    @Getter
+    private int goodThreshold;
+    @Getter
+    private int moderateThreshold;
+    @Getter
+    private int badThreshold;
+
     private ConfigurationNode rootNode;
 
     public ConfigManager(Path configDir) throws IOException {
@@ -66,11 +87,62 @@ public class ConfigManager {
                 String name = node.getString();
                 if (name != null) overlayServers.add(name.toLowerCase());
             }
+            // Load ping setting
+            ConfigurationNode pingSetting = rootNode.node("ping-setting");
+            {
+                ConfigurationNode enable_ping = pingSetting.node("enable-ping");
+                ConfigurationNode interval = pingSetting.node("interval");
 
-            log.info("Loaded {} server aliases from config", serverAliases.size());
-            log.info("Loaded {} overlay servers from config", overlayServers.size());
+                if (pingSetting.virtual() || pingSetting.empty()) {
+                    enable_ping.set(true);
+                    interval.set(Long.class, 5);
+                    loader.save(rootNode);
+                }
+                enablePing = enable_ping.getBoolean(true);
+                intervalPing = interval.getLong(5);
+                // 加载阈值配置
+                ConfigurationNode thresholdsNode = rootNode.node("ping-setting", "thresholds");
+                if (thresholdsNode.virtual() || thresholdsNode.empty()) {
+                    // 设置默认阈值
+                    thresholdsNode.node("good").set(100);
+                    thresholdsNode.node("moderate").set(200);
+                    thresholdsNode.node("bad").set(300);
+                    loader.save(rootNode);
+                }
+
+                goodThreshold = thresholdsNode.node("good").getInt(100);
+                moderateThreshold = thresholdsNode.node("moderate").getInt(200);
+                badThreshold = thresholdsNode.node("bad").getInt(300);
+
+                // 验证阈值有效性
+                validateThresholds();
+
+            }
+
+            // Load log setting
+            ConfigurationNode logInfoSetting = rootNode.node("log-info-setting");
+            {
+                ConfigurationNode enable_error_log = logInfoSetting.node("enable-error-log");
+                ConfigurationNode enable_listener_log = logInfoSetting.node("enable-listener-log");
+                ConfigurationNode enable_ping_log = logInfoSetting.node("enable-ping-log");
+                if (logInfoSetting.virtual() || logInfoSetting.empty()) {
+                    enable_error_log.set(true);
+                    enable_listener_log.set(true);
+                    enable_ping_log.set(true);
+                    loader.save(rootNode);
+                }
+                enableErrorLog = enable_error_log.getBoolean(true);
+                enableListenerLog = enable_listener_log.getBoolean(true);
+                enablePingLog = enable_ping_log.getBoolean(true);
+            }
+
+
+
+            log.info(CROSS_TELEPORT_MOD, "Loaded {} server aliases from config", serverAliases.size());
+            log.info(CROSS_TELEPORT_MOD, "Loaded {} overlay servers from config", overlayServers.size());
+            log.info(CROSS_TELEPORT_MOD, "Loaded log setting from config ,error-log:{}, listener-log;{}, ping-log:{}", enableErrorLog, enableListenerLog, enablePingLog);
         } catch (IOException e) {
-            log.error("Failed to load configuration from {}", configPath, e);
+            log.error(CROSS_TELEPORT_MOD, "Failed to load configuration from {}", configPath, e);
             throw e;
         }
     }
@@ -80,6 +152,16 @@ public class ConfigManager {
      */
     public synchronized void reload() throws IOException {
         load();
+    }
+
+    /**
+     * Validate Thresholds‘ valye
+     */
+    private void validateThresholds() {
+        if (goodThreshold >= moderateThreshold || moderateThreshold >= badThreshold) {
+            throw new IllegalStateException("Invalid latency thresholds configuration: " +
+                    "must be good < moderate < bad");
+        }
     }
 
     /**
@@ -143,7 +225,7 @@ public class ConfigManager {
                     throw new IOException("Missing embedded config.yml in resources!");
                 }
                 Files.copy(in, configPath);
-                log.info("Default config.yml copied to {}", configPath);
+                log.info(CROSS_TELEPORT_MOD, "Default config.yml copied to {}", configPath);
             }
         }
     }

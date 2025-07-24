@@ -1,18 +1,18 @@
 package com.leisuretimedock.crossmod.client;
 
 import com.leisuretimedock.crossmod.CrossTeleportMod;
-import com.leisuretimedock.crossmod.NetworkHandler;
+import com.leisuretimedock.crossmod.client.command.GotoCommand;
+import com.leisuretimedock.crossmod.client.overlay.CrossServerTipOverLay;
+import com.leisuretimedock.crossmod.client.overlay.PluginCommand;
+import com.leisuretimedock.crossmod.network.NetworkHandler;
 import com.leisuretimedock.crossmod.reset.ClientResetManager;
-import com.mojang.brigadier.arguments.StringArgumentType;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelPipeline;
 import io.netty.channel.SimpleChannelInboundHandler;
 import lombok.extern.slf4j.Slf4j;
 import net.minecraft.client.Minecraft;
-import net.minecraft.commands.Commands;
 import net.minecraft.network.Connection;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.network.chat.TextComponent;
 import net.minecraft.network.protocol.game.ClientboundCustomPayloadPacket;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.ClientPlayerNetworkEvent;
@@ -60,11 +60,11 @@ public class PluginChannelClient {
                                 switch (cmd) {
                                     case OVERLAY_SHOW -> {
                                         log.debug("[CrossTeleportMod] 执行 OVERLAY_SHOW");
-                                        OverlayRenderer.setShow(true);
+                                        CrossServerTipOverLay.setShow(true);
                                     }
                                     case OVERLAY_HIDE -> {
                                         log.debug("[CrossTeleportMod] 执行 OVERLAY_HIDE");
-                                        OverlayRenderer.setShow(false);
+                                        CrossServerTipOverLay.setShow(false);
                                     }
                                 }
                             }, () -> log.error("未知指令: {}", command));
@@ -111,16 +111,6 @@ public class PluginChannelClient {
 
     @SubscribeEvent
     public static void onRegisterCommand(RegisterClientCommandsEvent event) {
-        event.getDispatcher().register(
-                Commands.literal("goto")
-                        .then(Commands.argument("server", StringArgumentType.string())
-                                .executes(ctx -> {
-                                    String server = StringArgumentType.getString(ctx, "server");
-                                    NetworkHandler.sendTeleportRequest(server);
-                                    ctx.getSource().sendSuccess(
-                                            new TextComponent("请求传送到 " + server), false);
-                                    return 1;
-                                }))
-        );
+        GotoCommand.register(event.getDispatcher());
     }
 }

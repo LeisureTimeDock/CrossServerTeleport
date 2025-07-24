@@ -1,4 +1,4 @@
-package com.leisuretimedock.crossmod;
+package com.leisuretimedock.crossmod.network;
 
 import lombok.extern.slf4j.Slf4j;
 import net.minecraft.client.Minecraft;
