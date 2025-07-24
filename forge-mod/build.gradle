@@ -32,11 +32,11 @@ println "Java: ${System.getProperty 'java.version'}, JVM: ${System.getProperty '
 
 
 
-//// 配置 Mixin
-//mixin {
-//    add sourceSets.main, "${mod_id}.refmap.json"
-//    config "${mod_id}.mixins.json"
-//}
+// 配置 Mixin
+mixin {
+    add sourceSets.main, "${mod_id}.refmap.json"
+    config "${mod_id}.mixins.json"
+}
 
 // 配置 LegacyForge 运行环境
 legacyForge {
@@ -93,6 +93,12 @@ configurations {
 dependencies {
     compileOnly 'org.projectlombok:lombok:1.18.24'
     annotationProcessor 'org.projectlombok:lombok:1.18.24'
+    annotationProcessor 'org.spongepowered:mixin:0.8.5:processor'
+    modImplementation "curse.maven:easy-villagers-400514:3887794"
+    modImplementation "curse.maven:xaeros-world-map-317780:6538320"
+    modImplementation "curse.maven:immersive-aircraft-666014:4679496"
+    modImplementation "curse.maven:modern-ui-352491:5229350"
+    modImplementation "curse.maven:iceberg-520110:4035917"
 }
 
 // 编译任务优化
@@ -114,7 +120,7 @@ jar {
                 'Implementation-Version'  : archiveVersion,
                 'Implementation-Vendor'   : mod_authors,
                 'Implementation-Timestamp': new Date().format("yyyy-MM-dd'T'HH:mm:ssZ"),
-//                'MixinConfigs' : "${mod_id}.mixin.json"
+                'MixinConfigs' : "${mod_id}.mixins.json"
         ])
     }
     finalizedBy 'reobfJar'

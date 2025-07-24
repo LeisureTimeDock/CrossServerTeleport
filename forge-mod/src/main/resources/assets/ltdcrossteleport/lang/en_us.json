@@ -1,4 +1,9 @@
 {
   "ltd.mod.client.name.trans_server": "LTD Cross Server Mod",
-  "ltd.mod.client.key": "LTD Key"
+  "ltd.mod.client.key": "Open LTD Cross Server Menu",
+  "ltd.mod.client.negotiating": "Negotiating...",
+  "ltd.mod.client.failed.reset_connection": "Failed to reset connection.",
+  "ltd.mod.client.error.handshake": "Handshake error",
+  "ltd.mod.client.invalid_reset_packet": "Invalid reset packet",
+  "ltd.mod.client.invalid_packet": "Invalid packet"
 }

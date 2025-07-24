@@ -18,7 +18,7 @@ public class ReloadConfigCommand implements SimpleCommand {
 
     private final ConfigManager configManager;
     public static final String PERMISSION_RELOAD = "ltdcrossserver.reload";
-    public static final String PERMISSION_HELP = "ltdcrossserver.help";
+
     public ReloadConfigCommand(ConfigManager configManager) {
         this.configManager = configManager;
     }

@@ -2,6 +2,7 @@ package com.leisuretimedock.crossmod.client;
 
 import com.leisuretimedock.crossmod.CrossTeleportMod;
 import com.leisuretimedock.crossmod.NetworkHandler;
+import com.leisuretimedock.crossmod.reset.ClientResetManager;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelPipeline;
@@ -28,7 +29,8 @@ public class PluginChannelClient {
     @SubscribeEvent
     public static void onLogin(ClientPlayerNetworkEvent.LoggedInEvent event) {
         log.debug("[CrossTeleportMod] 玩家登录事件触发");
-
+        if (ClientResetManager.isNegotiating.get())
+            ClientResetManager.isNegotiating.set(false);
         Connection connection = Objects.requireNonNull(Minecraft.getInstance().getConnection()).getConnection();
         ChannelPipeline pipeline = connection.channel().pipeline();
 
@@ -38,13 +40,11 @@ public class PluginChannelClient {
             pipeline.addBefore("packet_handler", HANDLER_NAME, new SimpleChannelInboundHandler<ClientboundCustomPayloadPacket>() {
                 @Override
                 protected void channelRead0(ChannelHandlerContext ctx, ClientboundCustomPayloadPacket packet) {
-                    log.debug("[CrossTeleportMod] 收到插件消息包: {}", packet.getIdentifier());
-
                     if (!packet.getIdentifier().equals(NetworkHandler.CHANNEL_ID)) {
-                        log.warn("[CrossTeleportMod] 未识别插件消息频道: {}", packet.getIdentifier());
+                        ctx.fireChannelRead(packet);
                         return;
                     }
-
+                    log.debug("[CrossTeleportMod] 收到插件消息包: {}", packet.getIdentifier());
                     FriendlyByteBuf buf = packet.getData();
                     try {
                         // 先读一个字符串但不使用它,出现空消息
@@ -96,9 +96,11 @@ public class PluginChannelClient {
 
             log.debug("[CrossTeleportMod] 当前管线内容: {}", pipeline.names());
 
-            if (pipeline.get(HANDLER_NAME) != null) {
-                pipeline.remove(HANDLER_NAME);
-                log.debug("[CrossTeleportMod] 成功移除插件消息处理器: {}", HANDLER_NAME);
+            if (pipeline.get(HANDLER_NAME) != null ) {
+                if (!ClientResetManager.isNegotiating.get()) {
+                    pipeline.remove(HANDLER_NAME);
+                    log.debug("[CrossTeleportMod] 成功移除插件消息处理器: {}", HANDLER_NAME);
+                } else log.debug("[CrossTeleport] 跳转中，不移除消息处理器: {}", HANDLER_NAME);
             } else {
                 log.warn("[CrossTeleportMod] 未找到插件消息处理器: {}", HANDLER_NAME);
             }

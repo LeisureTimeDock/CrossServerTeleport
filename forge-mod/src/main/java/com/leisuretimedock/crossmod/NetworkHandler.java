@@ -16,7 +16,6 @@ import java.util.Objects;
 public class NetworkHandler {
 
     // 自定义插件消息通道标识
-    public static final ResourceLocation TELEPORT_ID = new ResourceLocation(CrossTeleportMod.MOD_ID, "teleport");
     public static final ResourceLocation CHANNEL_ID = new ResourceLocation(CrossTeleportMod.MOD_ID, "channel");
 
     public static void register() {
@@ -30,9 +29,8 @@ public class NetworkHandler {
      * @param payload   负载数据（字节数组）
      */
     public static void sendPluginMessage(ResourceLocation subChannel, byte[] payload) {
-        FriendlyByteBuf buf = new FriendlyByteBuf(Unpooled.buffer());
-//        buf.writeUtf(subChannel.getPath());  // 写入子通道字符串
-        buf.writeBytes(payload);              // 写入负载字节
+        FriendlyByteBuf buf = new FriendlyByteBuf(Unpooled.buffer(payload.length));
+        buf.writeBytes(payload);
 
         // 获取当前连接并发送自定义负载包
         Objects.requireNonNull(Minecraft.getInstance().getConnection())

@@ -15,6 +15,7 @@ import com.velocitypowered.api.proxy.Player;
 import com.velocitypowered.api.proxy.ProxyServer;
 import com.velocitypowered.api.proxy.messages.MinecraftChannelIdentifier;
 
+import lombok.extern.slf4j.Slf4j;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 
@@ -29,9 +30,11 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
+
 /**
  * 插件消息监听器，负责接收客户端发来的插件消息并处理跨服传送、Overlay显示等逻辑。
  */
+@Slf4j
 public class PluginMessageListener {
 
     // 插件消息通道标识（与客户端保持一致）
@@ -103,13 +106,13 @@ public class PluginMessageListener {
      */
     private void handlePluginChannel(Player player, byte[] data) {
         // 简单日志，打印字节长度和十六进制，便于调试
-        System.out.println("Received plugin message on channel 'channel' from player " + player.getUsername());
-        System.out.println("Data length: " + data.length);
+        log.trace("Received plugin message on channel 'channel' from player {}", player.getUsername());
+        log.trace("Data length: {}", data.length);
         StringBuilder sb = new StringBuilder();
         for (byte b : data) {
             sb.append(String.format("%02X ", b));
         }
-        System.out.println("Data hex: " + sb);
+        log.trace("Data hex: {}", sb);
         try (DataInputStream in = new DataInputStream(new ByteArrayInputStream(data))) {
             String command = in.readUTF();
             logger.debug("[CrossTeleportMod] Received plugin command from {}: {}", player.getUsername(), command);
@@ -117,7 +120,14 @@ public class PluginMessageListener {
             if ("client_ready".equals(command)) {
                 if (waitingForReady.remove(player)) {
                     logger.debug("[CrossTeleportMod] {} is ready, sending overlay", player.getUsername());
-                    OverlayManager.showOverlay(player);
+                    player.getCurrentServer().ifPresent(i -> {
+                        String name = i.getServerInfo().getName();
+                        boolean contains = configManager.getOverlayServers().contains(name);
+                        if (contains) {
+                            OverlayManager.showOverlay(player);
+                        }
+                        else OverlayManager.hideOverlay(player);
+                    });
                     // TODO: 支持发送自定义服务器列表
                 } else {
                     logger.debug("[CrossTeleportMod] Received client_ready from {}, but not in waiting set", player.getUsername());
@@ -171,13 +181,7 @@ public class PluginMessageListener {
 
         logger.debug("[CrossTeleportMod] Player {} joined server {}", player.getUsername(), currentServer);
 
-        if (configManager.getOverlayServers().contains(currentServer)) {
-            waitingForReady.add(player);
-            logger.debug("[CrossTeleportMod] Added {} to waitingForReady set", player.getUsername());
-        } else {
-            OverlayManager.hideOverlay(player);
-            logger.debug("[CrossTeleportMod] Hiding overlay for {}", player.getUsername());
-        }
+        waitingForReady.add(player);
     }
 
     /**

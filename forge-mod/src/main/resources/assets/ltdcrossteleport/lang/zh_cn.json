@@ -1,4 +1,10 @@
 {
   "ltd.mod.client.name.trans_server": "LTD跨服传送模组",
-  "ltd.mod.client.key": "LTD跨服传送按键"
+  "ltd.mod.client.key": "打开LTD跨服传送菜单",
+  "ltd.mod.client.negotiating": "重定向中 ...",
+  "ltd.mod.client.failed.reset_connection": "重置链接失败。",
+  "ltd.mod.client.error.handshake": "握手出错",
+  "ltd.mod.client.invalid_reset_packet": "无效的重置链接包",
+  "ltd.mod.client.invalid_packet": "无效的包"
+
 }

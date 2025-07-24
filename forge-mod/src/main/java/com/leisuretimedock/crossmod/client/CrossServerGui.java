@@ -58,7 +58,7 @@ public class CrossServerGui extends Screen {
     private void sendCustomPayload(String message) {
         Minecraft mc = Minecraft.getInstance();
         if (mc.getConnection() != null) {
-            FriendlyByteBuf buf = new FriendlyByteBuf(Unpooled.buffer());
+            FriendlyByteBuf buf = new FriendlyByteBuf(Unpooled.buffer(256));
             buf.writeUtf(message);
             mc.getConnection().send(new ServerboundCustomPayloadPacket(CHANNEL_ID, buf));
         }
