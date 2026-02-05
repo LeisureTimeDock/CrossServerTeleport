@@ -45,7 +45,7 @@ public class ClientResetManager {
                             .loginIndex(ResetPacket::getLoginIndex, ResetPacket::setLoginIndex)
                             .decoder(ResetPacket::decode)
                             .encoder(ResetPacket::encode)
-                            .consumer(HandshakeHandler.biConsumerFor(ResetPacket::handler))
+                            .consumerMainThread(HandshakeHandler.biConsumerFor(ResetPacket::handler))
                             .add();
                     log.info( "Registered forge reset packet successfully.");
                 }

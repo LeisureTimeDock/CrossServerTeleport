@@ -4,14 +4,18 @@ import com.leisuretimedock.crossmod.client.KeyBindingHandler;
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.GuiComponent;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.renderer.entity.ItemRenderer;
+import net.minecraft.client.resources.language.I18n;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraftforge.client.gui.ForgeIngameGui;
-import net.minecraftforge.client.gui.IIngameOverlay;
+import net.minecraftforge.client.gui.overlay.ForgeGui;
+import net.minecraftforge.client.gui.overlay.IGuiOverlay;
 
-public class CrossServerTipOverLay implements IIngameOverlay {
+import java.awt.*;
+
+public class CrossServerTipOverLay implements IGuiOverlay {
     public static final CrossServerTipOverLay INSTANCE = new CrossServerTipOverLay();
     private static boolean showOverlay = false;
     private static final Minecraft mc = Minecraft.getInstance();
@@ -22,7 +26,7 @@ public class CrossServerTipOverLay implements IIngameOverlay {
         showOverlay = show;
     }
     @Override
-    public void render(ForgeIngameGui forgeIngameGui, PoseStack poseStack, float v, int i, int i1) {
+    public void render(ForgeGui forgeGui, GuiGraphics guiGraphics, float v, int i, int i1) {
         if ( !showOverlay || mc.player == null || mc.level == null) return;
         int x = 10;
         int y = 10;
@@ -31,15 +35,14 @@ public class CrossServerTipOverLay implements IIngameOverlay {
 
         // 1. 原版钟物品
         ItemStack clockStack = new ItemStack(Items.CLOCK);
-
-        // 2. 渲染钟图标（含动画帧）
-        itemRenderer.renderAndDecorateItem(clockStack, x, y);
-        itemRenderer.renderGuiItemDecorations(mc.font, clockStack, x, y);
-
+        PoseStack poseStack = new PoseStack();
+        poseStack.translate(10, 10, 10);
+        // 2. 渲染钟图标
+        guiGraphics.renderItem(clockStack, x, y);
+        guiGraphics.renderItemDecorations(font,clockStack, x, y);
         // 3. 绘制提示文字
-        String keyText = KeyBindingHandler.OPEN_GUI_KEY.getTranslatedKeyMessage().getString(); // 可动态从 KeyMapping 获取
-        String text = "按 [" + keyText.toUpperCase() + "] 打开跨服传送菜单";
-        GuiComponent.drawString(poseStack, font, text, x + 20, y + 6, 0xFFFFFF);
+        String text = Component.translatable("ltd.mod.client.overlay.tip", KeyBindingHandler.OPEN_GUI_KEY.getTranslatedKeyMessage()).getString();
+        guiGraphics.drawString(font, text, x + 20, y + 6, 0xFFFFFF);
 
     }
 }

@@ -36,5 +36,7 @@
   "ltd.mod.ping.stats.avg_latency": "平均时延: %.1fms",
   "ltd.mod.ping.stats.packet_loss": "丢包率: %.1f%%",
   "ltd.mod.ping.stats.sample_count": "样本数量: %d",
-  "ltd.mod.ping.warn.network_latency": "网络延迟较高，建议减少Ping频率"
+  "ltd.mod.ping.warn.network_latency": "网络延迟较高，建议减少Ping频率",
+  "ltd.mod.client.menu.button.no_servers": "没有服务器",
+  "ltd.mod.client.overlay.tip": "按 [%s] 打开跨服传送菜单"
 }

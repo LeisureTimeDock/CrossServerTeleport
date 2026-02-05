@@ -1,11 +1,9 @@
-// 客户端网络处理类（CrossMod 端）
 package com.leisuretimedock.crossmod.network;
 
 import com.leisuretimedock.crossmod.CrossTeleportMod;
-import com.leisuretimedock.crossmod.network.toClient.PingMessagePayload;
-import com.leisuretimedock.crossmod.network.toClient.PingResultPacket;
-import com.leisuretimedock.crossmod.network.toClient.PingStatsPacket;
+import com.leisuretimedock.crossmod.network.toClient.*;
 import com.leisuretimedock.crossmod.network.toServer.PongMessagePayload;
+import com.leisuretimedock.crossmod.network.toServer.SyncCommonConfigRequestPacket;
 import io.netty.buffer.Unpooled;
 import lombok.extern.slf4j.Slf4j;
 import net.minecraft.client.Minecraft;
@@ -17,6 +15,7 @@ import net.minecraftforge.network.NetworkDirection;
 import net.minecraftforge.network.NetworkRegistry;
 import net.minecraftforge.network.PacketDistributor;
 import net.minecraftforge.network.simple.SimpleChannel;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 
@@ -74,6 +73,26 @@ public class NetworkHandler {
                 PingStatsPacket::decode,
                 PingStatsPacket::handle
         );
+        CHANNEL.messageBuilder(SyncCommonConfigPacket.class, messageId++, NetworkDirection.PLAY_TO_CLIENT)
+                .decoder(SyncCommonConfigPacket::decode)
+                .encoder(SyncCommonConfigPacket::encode)
+                .consumerNetworkThread(SyncCommonConfigPacket::handle)
+                .add();
+        CHANNEL.messageBuilder(SyncCommonConfigRequestPacket.class, messageId++, NetworkDirection.PLAY_TO_SERVER)
+                .decoder(SyncCommonConfigRequestPacket::decode)
+                .encoder(SyncCommonConfigRequestPacket::encode)
+                .consumerNetworkThread(SyncCommonConfigRequestPacket::handle)
+                .add();
+        CHANNEL.messageBuilder(CommonConfigHashInformPacket.class, messageId++, NetworkDirection.PLAY_TO_CLIENT)
+                .decoder(CommonConfigHashInformPacket::decode)
+                .encoder(CommonConfigHashInformPacket::encode)
+                .consumerNetworkThread(CommonConfigHashInformPacket::handle)
+                .add();
+        CHANNEL.messageBuilder(GotoServerPayload.class, messageId++, NetworkDirection.PLAY_TO_CLIENT)
+                .decoder(GotoServerPayload::decode)
+                .encoder(GotoServerPayload::encode)
+                .consumerMainThread(GotoServerPayload::handle)
+                .add();
     }
     // 新增发送报告方法
     public static void sendPingReport(ServerPlayer player,
@@ -88,7 +107,7 @@ public class NetworkHandler {
     }
 
 
-    public static void sendPingResults(ServerPlayer player, Map<UUID, Long> results) {
+    public static void sendPingResults(ServerPlayer player, @NotNull Map<UUID, Long> results) {
         // 创建平均时延映射
         Map<UUID, Double> averageLatencies = new HashMap<>();
 
@@ -116,7 +135,7 @@ public class NetworkHandler {
     public static void sendPingRequest(ServerPlayer player, UUID requestId) {
         try {
             CHANNEL.sendTo(new PingMessagePayload(requestId),
-                    player.connection.getConnection(),
+                    player.connection.connection,
                     NetworkDirection.PLAY_TO_CLIENT);
         } catch (Exception e) {
             log.error("发送ping请求失败", e);
@@ -151,5 +170,38 @@ public class NetworkHandler {
      */
     public static void sendTeleportRequest(String serverName) {
         PluginMessageListener.sendTeleport(serverName);
+    }
+    /**
+     * Send to player.
+     *
+     * @param <MSG>   the type parameter
+     * @param message the message
+     * @param player  the player
+     */
+    public static <MSG> void sendToPlayer(MSG message, ServerPlayer player){
+        CHANNEL.send(PacketDistributor.PLAYER.with(() -> player), message);
+    }
+
+    /**
+     * Send to all player.
+     *
+     * @param <MSG>   the type parameter
+     * @param message the message
+     */
+    public static <MSG> void sendToAllPlayer(MSG message){
+        CHANNEL.send(PacketDistributor.ALL.noArg(), message);
+    }
+
+    /**
+     * Send to player.
+     *
+     * @param <MSG>             the type parameter
+     * @param <T>               the type parameter
+     * @param message           the message
+     * @param entity            the entity
+     * @param packetDistributor the packet distributor
+     */
+    public static <MSG, T> void sendToPlayer(MSG message, T entity, PacketDistributor<T> packetDistributor){
+        CHANNEL.send(packetDistributor.with(() -> entity), message);
     }
 }

@@ -11,7 +11,7 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.commands.arguments.EntityArgument;
-import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 
 import java.util.Collection;
@@ -92,7 +92,7 @@ public class PingCommand {
 
     private static int executePlayerReport(CommandSourceStack source, Collection<ServerPlayer> players) throws CommandSyntaxException {
         if (players.isEmpty()) {
-            source.sendSuccess(new TranslatableComponent("ltd.mod.ping.error.no_players"), false);
+            source.sendSuccess(() -> Component.translatable("ltd.mod.ping.error.no_players"), false);
             return 0;
         }
 
@@ -100,7 +100,7 @@ public class PingCommand {
         Map<UUID, Long> results = PingRequestManager.getLatestPingsForPlayers(players);
 
         if (results.isEmpty()) {
-            source.sendSuccess(new TranslatableComponent("ltd.mod.ping.info.no_data"), false);
+            source.sendSuccess(() -> Component.translatable("ltd.mod.ping.info.no_data"), false);
             return Command.SINGLE_SUCCESS;
         }
 
@@ -115,7 +115,7 @@ public class PingCommand {
         Map<UUID, Long> results = PingRequestManager.getAllLatestPings();
 
         if (results.isEmpty()) {
-            source.sendSuccess(new TranslatableComponent("ltd.mod.ping.info.no_data"), false);
+            source.sendSuccess(() -> Component.translatable("ltd.mod.ping.info.no_data"), false);
             return Command.SINGLE_SUCCESS;
         }
 
@@ -134,7 +134,7 @@ public class PingCommand {
         PingRequestManager.PingStats stats = PingRequestManager.getGlobalPingStats();
 
         if (stats.sampleCount() == 0) {
-            source.sendSuccess(new TranslatableComponent("ltd.mod.ping.info.no_data"), false);
+            source.sendSuccess(() -> Component.translatable("ltd.mod.ping.info.no_data"), false);
             return Command.SINGLE_SUCCESS;
         }
 
@@ -147,28 +147,28 @@ public class PingCommand {
     private static int executeSinglePing(CommandSourceStack source) throws CommandSyntaxException {
         ServerPlayer player = source.getPlayerOrException();
         if(!PingRequestManager.isMonitored(player.getUUID())) {
-            source.sendFailure(new TranslatableComponent("ltd.mod.ping.error.not_monitored.self"));
+            source.sendFailure(Component.translatable("ltd.mod.ping.error.not_monitored.self"));
             return -1;
         }
         PingRequestManager.ping(player);
-        source.sendSuccess(new TranslatableComponent("ltd.mod.ping.success.ping_self"), false);
+        source.sendSuccess(() -> Component.translatable("ltd.mod.ping.success.ping_self"), false);
         return Command.SINGLE_SUCCESS;
     }
 
     private static int executePingPlayers(CommandSourceStack source, Collection<ServerPlayer> players) throws CommandSyntaxException {
         if (players.isEmpty()) {
-            source.sendSuccess(new TranslatableComponent("ltd.mod.ping.error.no_players"), false);
+            source.sendSuccess(() -> Component.translatable("ltd.mod.ping.error.no_players"), false);
             return 0;
         }
 
         players.forEach(player -> {
             if(!PingRequestManager.isMonitored(player.getUUID())) {
-                source.sendFailure(new TranslatableComponent("ltd.mod.ping.error.not_monitored.other",
+                source.sendFailure(Component.translatable("ltd.mod.ping.error.not_monitored.other",
                         player.getScoreboardName()));
             }
             else {
                 PingRequestManager.ping(player);
-                source.sendSuccess(new TranslatableComponent("ltd.mod.ping.success.ping_other",
+                source.sendSuccess(() -> Component.translatable("ltd.mod.ping.success.ping_other",
                         player.getScoreboardName()), false);
             }
         });
@@ -180,7 +180,7 @@ public class PingCommand {
                                         int count,
                                         int interval) {
         if (players.isEmpty()) {
-            source.sendSuccess(new TranslatableComponent("ltd.mod.ping.error.no_players"), false);
+            source.sendSuccess(() -> Component.translatable("ltd.mod.ping.error.no_players"), false);
             return 0;
         }
 
@@ -188,12 +188,12 @@ public class PingCommand {
             if (PingRequestManager.sendMultiplePings(player, count, interval)) {
                 source.sendSuccess(
                         player.getScoreboardName().equals(source.getTextName()) ?
-                        new TranslatableComponent("ltd.mod.ping.success.multiping.start.self", count, interval) :
-                        new TranslatableComponent("ltd.mod.ping.success.multiping.start.other", player.getScoreboardName(), count, interval),
+                        () -> Component.translatable("ltd.mod.ping.success.multiping.start.self", count, interval) :
+                        () -> Component.translatable("ltd.mod.ping.success.multiping.start.other", player.getScoreboardName(), count, interval),
                 false);
             } else {
                 source.sendFailure(
-                        new TranslatableComponent(
+                        Component.translatable(
                                 player.getScoreboardName().equals(source.getTextName()) ?
                                         "ltd.mod.ping.error.multiping.fail.self" :
                                         "ltd.mod.ping.error.multiping.fail.other",
@@ -209,28 +209,28 @@ public class PingCommand {
         ServerPlayer player = source.getPlayerOrException();
         if (monitor) {
             PingRequestManager.monitor(player);
-            source.sendSuccess(new TranslatableComponent("ltd.mod.ping.success.monitor.self"), false);
+            source.sendSuccess(() -> Component.translatable("ltd.mod.ping.success.monitor.self"), false);
         } else {
             PingRequestManager.unmonitor(player);
-            source.sendSuccess(new TranslatableComponent("ltd.mod.ping.success.unmonitor.self"), false);
+            source.sendSuccess(() -> Component.translatable("ltd.mod.ping.success.unmonitor.self"), false);
         }
         return Command.SINGLE_SUCCESS;
     }
 
     private static int executeToggleMonitoring(CommandSourceStack source, Collection<ServerPlayer> players, boolean monitor) throws CommandSyntaxException {
         if (players.isEmpty()) {
-            source.sendSuccess(new TranslatableComponent("ltd.mod.ping.error.no_players"), false);
+            source.sendSuccess(() -> Component.translatable("ltd.mod.ping.error.no_players"), false);
             return 0;
         }
 
         players.forEach(player -> {
             if (monitor) {
                 PingRequestManager.monitor(player);
-                source.sendFailure(new TranslatableComponent("ltd.mod.ping.error.not_monitored.other",
+                source.sendFailure(Component.translatable("ltd.mod.ping.error.not_monitored.other",
                         player.getScoreboardName()));
             } else {
                 PingRequestManager.unmonitor(player);
-                source.sendSuccess(new TranslatableComponent("ltd.mod.ping.success.ping_other",
+                source.sendSuccess(() -> Component.translatable("ltd.mod.ping.success.ping_other",
                         player.getScoreboardName()), false);
             }
         });
@@ -239,37 +239,37 @@ public class PingCommand {
     }
 
     private static void sendTextReport(ServerPlayer player, Map<UUID, Long> results) {
-        player.sendMessage(new TranslatableComponent("ltd.mod.ping.title.report").withStyle(ChatFormatting.GOLD),
-                player.getUUID());
+        player.displayClientMessage(Component.translatable("ltd.mod.ping.title.report").withStyle(ChatFormatting.GOLD),
+                true);
 
         results.forEach((uuid, ping) -> {
-            player.sendMessage(
-                    new TranslatableComponent(
+            player.displayClientMessage(
+                   Component.translatable(
                         "ltd.mod.ping.report.entry",
                             uuid.toString().substring(0, 8),
                             ping,
                             PingRequestManager.getAverageLatency(uuid),
                             PingRequestManager.getPacketLossRate(uuid)),
-                            player.getUUID()
+                    true
             );
         });
     }
 
     private static void sendStatsTextReport(ServerPlayer player, PingRequestManager.PingStats stats) {
-        player.sendMessage(new TranslatableComponent("ltd.mod.ping.title.stats").withStyle(ChatFormatting.GOLD),
-                player.getUUID());
-        player.sendMessage(new TranslatableComponent(
-                "ltd.mod.ping.stats.average", stats.average()), player.getUUID());
-        player.sendMessage(new TranslatableComponent(
-                "ltd.mod.ping.stats.max", stats.max()), player.getUUID());
-        player.sendMessage(new TranslatableComponent(
-                "ltd.mod.ping.stats.min", stats.max()), player.getUUID());
-        player.sendMessage(new TranslatableComponent(
-                "ltd.mod.ping.stats.avg_latency", stats.averageLatency()), player.getUUID());
-        player.sendMessage(new TranslatableComponent(
-                "ltd.mod.ping.stats.packet_loss", stats.packetLossRate()), player.getUUID());
-        player.sendMessage(new TranslatableComponent(
-                "ltd.mod.ping.stats.sample_count", stats.sampleCount()), player.getUUID());
+        player.displayClientMessage(Component.translatable("ltd.mod.ping.title.stats").withStyle(ChatFormatting.GOLD),
+                true);
+        player.displayClientMessage(Component.translatable(
+                "ltd.mod.ping.stats.average", stats.average()), true);
+        player.displayClientMessage(Component.translatable(
+                "ltd.mod.ping.stats.max", stats.max()), true);
+        player.displayClientMessage(Component.translatable(
+                "ltd.mod.ping.stats.min", stats.max()), true);
+        player.displayClientMessage(Component.translatable(
+                "ltd.mod.ping.stats.avg_latency", stats.averageLatency()), true);
+        player.displayClientMessage(Component.translatable(
+                "ltd.mod.ping.stats.packet_loss", stats.packetLossRate()), true);
+        player.displayClientMessage(Component.translatable(
+                "ltd.mod.ping.stats.sample_count", stats.sampleCount()), true);
 
     }
 }

@@ -27,7 +27,7 @@ public class PluginChannelClient {
     private static final String HANDLER_NAME = CrossTeleportMod.MOD_ID + ":channel";
 
     @SubscribeEvent
-    public static void onLogin(ClientPlayerNetworkEvent.LoggedInEvent event) {
+    public static void onLogin(ClientPlayerNetworkEvent.LoggingIn event) {
         log.debug("[CrossTeleportMod] 玩家登录事件触发");
         if (ClientResetManager.isNegotiating.get())
             ClientResetManager.isNegotiating.set(false);
@@ -87,7 +87,7 @@ public class PluginChannelClient {
 
 
     @SubscribeEvent
-    public static void onLogout(ClientPlayerNetworkEvent.LoggedOutEvent event) {
+    public static void onLogout(ClientPlayerNetworkEvent.LoggingOut event) {
         log.debug("[CrossTeleportMod] 玩家注销事件触发");
 
         Connection connection = event.getConnection();

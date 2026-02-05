@@ -2,25 +2,21 @@ package com.leisuretimedock.crossmod.client;
 
 import com.leisuretimedock.crossmod.CrossTeleportMod;
 import com.leisuretimedock.crossmod.client.gui.CrossServerGui;
-import com.leisuretimedock.crossmod.client.gui.GenericIceMessageScreen;
-import net.minecraft.ChatFormatting;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
-import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.client.ClientRegistry;
+import net.minecraftforge.client.event.RegisterKeyMappingsEvent;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import org.lwjgl.glfw.GLFW;
 @Mod.EventBusSubscriber(modid = CrossTeleportMod.MOD_ID, bus = Mod.EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
 public class KeyBindingHandler {
     public static final KeyMapping OPEN_GUI_KEY = new KeyMapping("ltd.mod.client.name.trans_server", GLFW.GLFW_KEY_HOME, "ltd.mod.client.key");
 
     @SubscribeEvent
-    public static void onRegisterKey(FMLClientSetupEvent event) {
-        event.enqueueWork(() -> ClientRegistry.registerKeyBinding(OPEN_GUI_KEY));
+    public static void onRegisterKeyMappingsEvent (RegisterKeyMappingsEvent event) {
+        event.register(OPEN_GUI_KEY);
     }
 
     @Mod.EventBusSubscriber(modid = CrossTeleportMod.MOD_ID, value = Dist.CLIENT)

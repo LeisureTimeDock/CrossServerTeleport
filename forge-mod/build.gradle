@@ -59,12 +59,17 @@ legacyForge {
         }
         client {
             client()
+            systemProperty 'forge.enabledGameTestNamespaces', mod_id
         }
         data {
             data()
+            programArguments.addAll '--mod', mod_id, '--all',
+                    '--output', file('src/generated/resources/').absolutePath,
+                    '--existing', file('src/main/resources/').absolutePath
         }
         server {
             server()
+            systemProperty 'forge.enabledGameTestNamespaces', mod_id
         }
     }
     mods {
@@ -97,11 +102,7 @@ dependencies {
     annotationProcessor 'org.projectlombok:lombok:1.18.24'
     annotationProcessor 'org.spongepowered:mixin:0.8.5:processor'
 
-    modImplementation "curse.maven:easy-villagers-400514:3887794"
-    modImplementation "curse.maven:xaeros-world-map-317780:6538320"
-    modImplementation "curse.maven:immersive-aircraft-666014:4679496"
-    modCompileOnly "curse.maven:modern-ui-352491:5229350"
-    modImplementation "curse.maven:iceberg-520110:4035917"
+    modCompileOnly "curse.maven:modern-ui-352491:6199942"
 }
 
 // 编译任务优化

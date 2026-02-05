@@ -3,11 +3,13 @@ package com.leisuretimedock.crossmod.network;
 import com.leisuretimedock.crossmod.CrossTeleportMod;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 
 import java.util.*;
 import java.util.concurrent.*;
+
+
 @Slf4j
 public final class PingRequestManager {
     // 配置常量
@@ -104,8 +106,8 @@ public final class PingRequestManager {
 
                 // 网络拥塞检测
                 if (ping > DEFAULT_TIMEOUT_MS * 0.8) {
-                    player.sendMessage(new TranslatableComponent("ltd.mod.ping.warn.network_latency"),
-                            player.getUUID());
+                    player.displayClientMessage(Component.translatable("ltd.mod.ping.warn.network_latency",  player.getUUID()),
+                           true);
                 }
 
                 updatePingHistory(data, ping);
@@ -175,7 +177,7 @@ public final class PingRequestManager {
         int successfulRequests = 0;
 
         for (PlayerPingData data : playerData.values()) {
-            synchronized (data) {
+            synchronized (playerData) {
                 allPings.addAll(data.pingHistory);
                 totalRequests += data.totalRequests;
                 successfulRequests += data.successfulRequests;
@@ -212,7 +214,7 @@ public final class PingRequestManager {
         Map<UUID, Long> results = new HashMap<>();
 
         playerData.forEach((uuid, data) -> {
-            synchronized (data) {
+            synchronized (PingRequestManager.class) {
                 if (!data.pingHistory.isEmpty()) {
                     results.put(uuid, data.pingHistory.getLast());
                 }
@@ -281,12 +283,12 @@ public final class PingRequestManager {
 
                     if (attempt == count) {
                         data.batchInProgress = 0;
-                        player.sendMessage(
-                                new TranslatableComponent("ltd.mod.ping.success.multiping.complete", count),
-                                player.getUUID());
+                        player.displayClientMessage(
+                                Component.translatable("ltd.mod.ping.success.multiping.complete", count),
+                                true);
                     }
                 }
-            }, i * Math.max(intervalMs, MIN_PING_INTERVAL), TimeUnit.MILLISECONDS);
+            }, i * intervalMs, TimeUnit.MILLISECONDS);
         }
 
         return true;
@@ -328,7 +330,7 @@ public final class PingRequestManager {
         Map<UUID, Double> averages = new HashMap<>();
 
         playerData.forEach((uuid, data) -> {
-            synchronized (data) {
+            synchronized (PingRequestManager.class) {
                 if (!data.pingHistory.isEmpty()) {
                     latestPings.put(uuid, PingRequestManager.getLatestPing(uuid).orElse(-1L));
                     averages.put(uuid, PingRequestManager.calculateAverageLatency(data.pingHistory));
@@ -348,7 +350,7 @@ public final class PingRequestManager {
         long currentTime = System.currentTimeMillis();
 
         playerData.forEach((playerId, data) -> {
-            synchronized (data) {
+            synchronized (PingRequestManager.class) {
                 data.activeRequests.entrySet().removeIf(entry ->
                         currentTime - entry.getValue() > DEFAULT_TIMEOUT_MS
                 );
@@ -364,24 +366,11 @@ public final class PingRequestManager {
 
 
     private static double calculateAverageLatency(Collection<Long> pingHistory) {
-        if (pingHistory.isEmpty()) return 0;
-
-        double total = 0;
-        double weightSum = 0;
-        int i = 1;
-
-        for (Long ping : pingHistory) {
-            double weight = 1.0 / i;
-            total += ping * weight;
-            weightSum += weight;
-            i++;
-        }
-
-        return total / weightSum;
+        return PlayerPingData.calculate(pingHistory);
     }
 
     private static double calculatePacketLossRate(PlayerPingData data) {
-        synchronized (data) {
+        synchronized (PingRequestManager.class) {
             if (data.totalRequests == 0) return 0;
             return (1 - (double) data.successfulRequests / data.totalRequests) * 100;
         }
@@ -406,6 +395,10 @@ public final class PingRequestManager {
         }
 
         private double calculateAverageLatency(Collection<Long> pings) {
+            return calculate(pings);
+        }
+
+        static double calculate(Collection<Long> pings) {
             if (pings.isEmpty()) return 0;
 
             double total = 0;

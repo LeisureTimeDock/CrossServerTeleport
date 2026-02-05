@@ -8,11 +8,13 @@ import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientHandshakePacketListenerImpl;
+import net.minecraft.client.multiplayer.ServerData;
 import net.minecraft.network.Connection;
 import net.minecraft.network.ConnectionProtocol;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.network.chat.Component;
 import net.minecraftforge.network.*;
+import org.slf4j.Logger;
 
 import java.util.function.Supplier;
 
@@ -32,18 +34,24 @@ public class ResetPacket extends HandshakeMessages.C2SAcknowledge {
     }
 
     public static void handler(HandshakeHandler ignoredHandler, ResetPacket ignoredMsg, Supplier<NetworkEvent.Context> ctxSupplier) {
+        handler(ctxSupplier, log);
+
+    }
+
+    public static void handler(Supplier<NetworkEvent.Context> ctxSupplier, Logger log) {
         NetworkEvent.Context ctx = ctxSupplier.get();
         ClientResetManager.isNegotiating.set(true);
         Connection conn = ctx.getNetworkManager();
         if (ctx.getDirection() != NetworkDirection.LOGIN_TO_CLIENT && ctx.getDirection() != NetworkDirection.PLAY_TO_CLIENT) {
-           conn.disconnect(new TranslatableComponent("ltd.mod.client.invalid_packet"));
+           conn.disconnect(Component.translatable("ltd.mod.client.invalid_packet"));
            return;
         }
         if (ResetHelper.clearClient(ctx)) {
+            ServerData serverData = Minecraft.getInstance().getCurrentServer();
            NetworkHooks.registerClientLoginChannel(conn);
            conn.setProtocol(ConnectionProtocol.LOGIN);
            conn.setListener(new ClientHandshakePacketListenerImpl(
-                   conn, Minecraft.getInstance(), null, s -> {}
+                   conn, Minecraft.getInstance(), serverData ,null, true, null, s -> {}
            ));
 
            ((AccessorMinecraft) Minecraft.getInstance()).setPendingConnection(conn);
@@ -55,11 +63,10 @@ public class ResetPacket extends HandshakeMessages.C2SAcknowledge {
                );
            } catch (Exception e) {
                log.error("Failed to send acknowledgment", e);
-               conn.disconnect(new TranslatableComponent("ltd.mod.client.error.handshake"));
+               conn.disconnect(Component.translatable("ltd.mod.client.error.handshake"));
            }
         }
-       ctx.setPacketHandled(true);
-
+        ctx.setPacketHandled(true);
     }
 
 }

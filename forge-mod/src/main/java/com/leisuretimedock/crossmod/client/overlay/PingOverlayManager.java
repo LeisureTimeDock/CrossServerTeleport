@@ -1,19 +1,18 @@
 package com.leisuretimedock.crossmod.client.overlay;
 
 import com.leisuretimedock.crossmod.client.ClientPingHandler;
-import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.GuiComponent;
-import net.minecraftforge.client.gui.ForgeIngameGui;
-import net.minecraftforge.client.gui.IIngameOverlay;
+import net.minecraft.client.gui.GuiGraphics;
+import net.minecraftforge.client.gui.overlay.ForgeGui;
+import net.minecraftforge.client.gui.overlay.IGuiOverlay;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class PingOverlayManager implements IIngameOverlay {
+public class PingOverlayManager implements IGuiOverlay {
     public static final PingOverlayManager INSTANCE = new PingOverlayManager();
-    private static boolean showOverlay = true;
+    private static boolean showOverlay = false;
     private static final Minecraft mc = Minecraft.getInstance();
     public static boolean isShowOverlay() {
         return  !showOverlay || mc.player == null || mc.level == null;
@@ -29,7 +28,7 @@ public class PingOverlayManager implements IIngameOverlay {
     }
 
     @Override
-    public void render(ForgeIngameGui gui, PoseStack poseStack, float partialTick, int width, int height) {
+    public void render(ForgeGui gui, GuiGraphics guiGraphics, float partialTick, int width, int height) {
         if (!showOverlay || mc.player == null || mc.level == null) {
             return;
         }
@@ -50,10 +49,10 @@ public class PingOverlayManager implements IIngameOverlay {
         int y = findSuitableYPosition(height, totalHeight);
 
         // 绘制背景
-        drawBackground(poseStack, x, y, maxWidth, totalHeight, font);
+        drawBackground(guiGraphics, x, y, maxWidth, totalHeight, font);
 
         // 绘制文本
-        drawTextLines(gui, poseStack, font, allLines, x, y);
+        drawTextLines(guiGraphics, font, allLines, x, y);
     }
 
     private List<String> getAllDisplayLines() {
@@ -95,18 +94,18 @@ public class PingOverlayManager implements IIngameOverlay {
         return baseY;
     }
 
-    private void drawBackground(PoseStack poseStack, int x, int y, int width, int height, Font font) {
-        GuiComponent.fill(poseStack,
+    private void drawBackground(GuiGraphics guiGraphics, int x, int y, int width, int height, Font font) {
+        guiGraphics.fill(
                 x - PADDING, y - PADDING,
                 x + width + PADDING, y + height + PADDING,
                 BACKGROUND_COLOR);
     }
 
-    private void drawTextLines(ForgeIngameGui gui, PoseStack poseStack, Font font, List<String> lines, int x, int y) {
+    private void drawTextLines(GuiGraphics guiGraphics, Font font, List<String> lines, int x, int y) {
         for (int i = 0; i < lines.size(); i++) {
             String line = lines.get(i);
             if (!line.isEmpty()) {
-                gui.getFont().draw(poseStack, line,
+                guiGraphics.drawString(font, line,
                         x,
                         y + i * font.lineHeight,
                         TEXT_COLOR);
