@@ -3,6 +3,7 @@ package com.leisuretimedock.crossmod.client;
 import com.leisuretimedock.crossmod.network.PingRequestManager;
 import net.minecraft.client.Minecraft;
 import net.minecraft.world.entity.player.Player;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -102,7 +103,7 @@ public class ClientPingHandler {
     }
 
     // 合并Ping数据和统计数据的显示方法
-    public static List<String> getCombinedDebugText() {
+    public static @NotNull List<String> getCombinedDebugText() {
         List<String> lines = new ArrayList<>();
 
         // 添加Ping数据

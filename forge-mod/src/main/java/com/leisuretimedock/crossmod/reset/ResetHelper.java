@@ -1,8 +1,8 @@
 package com.leisuretimedock.crossmod.reset;
 
+import com.leisuretimedock.crossmod.client.gui.GenericIceMessageScreen;
 import lombok.extern.slf4j.Slf4j;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.screens.GenericDirtMessageScreen;
 import net.minecraft.client.multiplayer.ServerData;
 import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraftforge.api.distmarker.Dist;
@@ -27,7 +27,7 @@ public class ResetHelper {
                 GameData.revertToFrozen();
             }
 
-            minecraft.clearLevel(new GenericDirtMessageScreen(new TranslatableComponent("ltd.mod.client.negotiating").withStyle(BOLD)));
+            minecraft.clearLevel(new GenericIceMessageScreen(new TranslatableComponent("ltd.mod.client.negotiating").withStyle(BOLD)));
             minecraft.setCurrentServer(serverData);
         });
         log.debug("Waiting for Clear to complete");

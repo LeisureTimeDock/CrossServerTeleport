@@ -12,7 +12,7 @@ import static com.leisuretimedock.crossplugin.CrossPlugin.CROSS_TELEPORT_MOD;
 @Slf4j
 public class PingManager {
     private final ProxyServer server;
-    private final Map<String, Long> serverPingResults = new HashMap<>();
+    private final Map<String, Integer> serverFallCounter = new HashMap<>();
     private final ConfigManager configManager;
 
     public PingManager(ProxyServer server, ConfigManager configManager) {
@@ -50,10 +50,14 @@ public class PingManager {
             long ping = endTime - startTime;
             String name = serverInfo.getServerInfo().getName();
             if (throwable == null) {
-                serverPingResults.put(name, ping);
-                if(configManager.isEnablePingLog()) log.debug(CROSS_TELEPORT_MOD, "Ping to server {}: {}ms", name, ping);
+                if(configManager.isEnablePingLog()) log.debug(CROSS_TELEPORT_MOD, "Ping to server {}: {} ms", name, ping);
             } else {
-                if(configManager.isEnablePingLog()) log.warn(CROSS_TELEPORT_MOD, "Failed to ping server {}", name, throwable);
+                if(configManager.isEnablePingLog()) {
+                    Integer put = serverFallCounter.put(name, serverFallCounter.getOrDefault(name, 0) + 1);
+                    if (put != null  && put == 1) {
+                        log.warn(CROSS_TELEPORT_MOD, "Failed to ping server {}", name, throwable);
+                    }
+                }
             }
         });
     }
